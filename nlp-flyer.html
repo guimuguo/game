@@ -523,8 +523,7 @@
     skipBtn.addEventListener('click', goBack);
 
     // Only show bar if coming from the game (not direct visit)
-    const fromGame = document.referrer.includes('index') ||
-                     document.referrer === '';
+    const fromGame = new URLSearchParams(window.location.search).get('from') === 'game';
 
     if (!fromGame) {
       document.getElementById('adBar').style.display = 'none';

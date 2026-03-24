@@ -209,7 +209,7 @@
     <div class="btns">
       <button id="startBtn">Start Challenge</button>
       <button id="lbBtn" class="secondary">Leaderboard</button>
-      <button class="secondary" onclick="window.location.href='nlp-flyer.html'">NLP Course</button>
+      <button class="secondary" onclick="window.location.href='nlp-flyer.html?from=game'">NLP Course</button>
     </div>
 
     <div class="hint">
@@ -566,7 +566,7 @@
       } else if (elapsed >= QUALIFY_TIME) {
         setTimeout(() => showStoryModal(), 400);
       } else {
-        setTimeout(() => { window.location.href = 'nlp-flyer.html'; }, 1500);
+        setTimeout(() => { window.location.href = 'nlp-flyer.html?from=game'; }, 1500);
       }
     }
 
