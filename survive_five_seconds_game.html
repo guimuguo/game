@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Survive 10 Sec. If You Can.</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+      background: linear-gradient(180deg, #0f172a, #1e293b);
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .wrap {
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 30px;
+    }
+    p {
+      margin: 6px 0;
+      opacity: 0.9;
+    }
+    .panel {
+      margin-top: 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    canvas {
+      margin-top: 14px;
+      width: 100%;
+      height: auto;
+      border-radius: 18px;
+      background: #0b1220;
+      border: 2px solid rgba(255,255,255,0.12);
+      box-shadow: 0 18px 50px rgba(0,0,0,0.35);
+      touch-action: none;
+    }
+    .btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 14px;
+      flex-wrap: wrap;
+    }
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      background: #22c55e;
+      color: #06210f;
+    }
+    button.secondary {
+      background: #334155;
+      color: white;
+    }
+    .hint {
+      margin-top: 10px;
+      font-size: 13px;
+      opacity: 0.8;
+      line-height: 1.6;
+    }
+
+    /* Leaderboard */
+    .leaderboard {
+      display: none;
+      margin-top: 24px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      padding: 16px;
+      text-align: left;
+    }
+    .leaderboard.open { display: block; }
+    .leaderboard h2 {
+      margin: 0 0 12px;
+      font-size: 16px;
+      text-align: center;
+      letter-spacing: 0.05em;
+      color: #fbbf24;
+    }
+    .lb-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 4px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 14px;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank {
+      width: 28px;
+      font-weight: 700;
+      color: #94a3b8;
+    }
+    .lb-rank.gold   { color: #fbbf24; }
+    .lb-rank.silver { color: #cbd5e1; }
+    .lb-rank.bronze { color: #d97706; }
+    .lb-name { flex: 1; padding: 0 8px; }
+    .lb-time { font-weight: 700; color: #22c55e; }
+    .lb-empty {
+      text-align: center;
+      opacity: 0.5;
+      font-size: 13px;
+      padding: 8px 0;
+    }
+    .lb-status {
+      text-align: center;
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 8px;
+    }
+
+    /* Modals shared */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: #1e293b;
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 28px 24px;
+      width: 320px;
+      text-align: center;
+    }
+    .modal-box h2 { margin: 0 0 6px; font-size: 22px; }
+    .modal-box p  { margin: 0 0 16px; opacity: 0.8; font-size: 14px; }
+    .modal-box input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 15px;
+      text-align: center;
+      outline: none;
+      margin-bottom: 14px;
+    }
+    .modal-box input::placeholder { opacity: 0.4; }
+    .modal-box textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      resize: none;
+      margin-bottom: 4px;
+      line-height: 1.5;
+    }
+    .modal-box textarea::placeholder { opacity: 0.4; }
+    .word-count { font-size: 12px; opacity: 0.5; margin-bottom: 14px; text-align: right; }
+    .word-count.over { color: #ef4444; opacity: 1; }
+    .modal-btns { display: flex; gap: 10px; justify-content: center; }
+    /* Story reveal */
+    .story-body {
+      background: rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 14px;
+      font-size: 14px;
+      line-height: 1.7;
+      text-align: left;
+      margin-bottom: 16px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .story-meta { font-size: 12px; opacity: 0.45; margin-bottom: 14px; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Survive 10 Sec. If You Can.</h1>
+    <p>Move left and right to dodge the falling obstacles.</p>
+    <p>Survive as long as you can!</p>
+
+    <div class="panel">
+      <div>Time: <span id="time">0.00</span>s</div>
+      <div>Status: <span id="status">Not Started</span></div>
+    </div>
+
+    <canvas id="game" width="400" height="600"></canvas>
+
+    <div class="btns">
+      <button id="startBtn">Start Challenge</button>
+      <button id="lbBtn" class="secondary">Leaderboard</button>
+      <button class="secondary" onclick="window.location.href='nlp-flyer.html'">NLP Course</button>
+    </div>
+
+    <div class="hint">
+      Desktop: ← → or A D to move.<br>
+      Mobile: Hold the left or right half of the screen to move.
+    </div>
+
+    <div class="leaderboard" id="leaderboardPanel">
+      <h2>Leaderboard — Top 20</h2>
+      <div id="lbList"><div class="lb-empty">Loading...</div></div>
+      <div class="lb-status" id="lbStatus"></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard entry modal (beat top 20) -->
+  <div class="modal-overlay" id="lbModal">
+    <div class="modal-box">
+      <h2>You made the Top 20!</h2>
+      <p id="lbModalDesc"></p>
+      <input id="nameInput" type="text" maxlength="20" placeholder="Enter your name" />
+      <div class="modal-btns">
+        <button id="submitLb">Save to Leaderboard</button>
+        <button class="secondary" id="skipLb">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Story share modal (10s+ but didn't beat top 20) -->
+  <div class="modal-overlay" id="storyModal">
+    <div class="modal-box">
+      <h2>You survived 10s!</h2>
+      <p>Want to leave an anonymous story or thought?</p>
+      <textarea id="storyInput" rows="5" placeholder="Write something... (max 150 words)"></textarea>
+      <div class="word-count" id="wordCount">0 / 150 words</div>
+      <div class="modal-btns">
+        <button id="submitStory">Share &amp; See Others</button>
+        <button class="secondary" id="skipStory">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Random story reveal modal -->
+  <div class="modal-overlay" id="storyReveal">
+    <div class="modal-box">
+      <h2 style="color:#fbbf24;margin-bottom:4px;">A story from another survivor</h2>
+      <div class="story-meta" id="storyMeta"></div>
+      <div class="story-body" id="storyBody"></div>
+      <button id="closeStory">Close</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue }
+      from "https://www.gstatic.com/firebasejs/12.11.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey:            "AIzaSyASO0-ryOnmFPfbqQMZN2fuEfNtZaWI2AI",
+      authDomain:        "tensecgame.firebaseapp.com",
+      databaseURL:       "https://tensecgame-default-rtdb.firebaseio.com",
+      projectId:         "tensecgame",
+      storageBucket:     "tensecgame.firebasestorage.app",
+      messagingSenderId: "873937996480",
+      appId:             "1:873937996480:web:8549956c1d8a8ed0463b25"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getDatabase(app);
+    const leaderboardRef = ref(db, 'leaderboard');
+    const storiesRef     = ref(db, 'stories');
+
+    // Live-updating leaderboard listener — top 20 by time
+    onValue(leaderboardRef, snapshot => {
+      const entries = [];
+      snapshot.forEach(child => {
+        const value = child.val() || {};
+        const time = Number(value.time);
+        if (!Number.isFinite(time)) return;
+        entries.push({
+          name: (value.name || 'Anonymous').toString(),
+          time,
+          date: value.date || null
+        });
+      });
+      entries.sort((a, b) => b.time - a.time);
+      const top20 = entries.slice(0, 20);
+      window.currentLeaderboard = top20;
+      renderLeaderboard(top20);
+      document.getElementById('lbStatus').textContent = 'Live — shared across all players';
+    }, () => {
+      document.getElementById('lbStatus').textContent = 'Could not connect to database';
+      window.currentLeaderboard = [];
+      renderLeaderboard([]);
+    });
+
+    // Save name + time to leaderboard only
+    window.saveToLeaderboard = async (name, time) => {
+      await push(leaderboardRef, {
+        name: name.trim() || 'Anonymous',
+        time,
+        date: new Date().toISOString()
+      });
+    };
+
+    // Save anonymous story; returns the new entry key
+    window.saveStory = async (story) => {
+      const result = await push(storiesRef, {
+        story: story.trim(),
+        date: new Date().toISOString()
+      });
+      return result.key;
+    };
+
+    // Pick a random story, excluding the one just submitted
+    window.getRandomStory = (excludeKey) => {
+      return new Promise(resolve => {
+        onValue(storiesRef, snapshot => {
+          const all = [];
+          snapshot.forEach(child => {
+            if (child.key !== excludeKey) all.push(child.val());
+          });
+          resolve(all.length ? all[Math.floor(Math.random() * all.length)] : null);
+        }, { onlyOnce: true });
+      });
+    };
+  </script>
+
+  <script>
+    const canvas    = document.getElementById('game');
+    const ctx       = canvas.getContext('2d');
+    const timeEl    = document.getElementById('time');
+    const statusEl  = document.getElementById('status');
+    const startBtn  = document.getElementById('startBtn');
+    const lbModal      = document.getElementById('lbModal');
+    const lbModalDesc  = document.getElementById('lbModalDesc');
+    const nameInput    = document.getElementById('nameInput');
+    const submitLb     = document.getElementById('submitLb');
+    const skipLb       = document.getElementById('skipLb');
+
+    const storyModal   = document.getElementById('storyModal');
+    const storyInput   = document.getElementById('storyInput');
+    const wordCountEl  = document.getElementById('wordCount');
+    const submitStory  = document.getElementById('submitStory');
+    const skipStory    = document.getElementById('skipStory');
+
+    const storyReveal  = document.getElementById('storyReveal');
+    const storyMetaEl  = document.getElementById('storyMeta');
+    const storyBodyEl  = document.getElementById('storyBody');
+    const closeStory   = document.getElementById('closeStory');
+
+    const QUALIFY_TIME = 10;
+    window.currentLeaderboard = [];
+
+    let animationId = null;
+    let running  = false;
+    let gameOver = false;
+    let startTime = 0;
+    let lastTime  = 0;
+    let spawnTimer = 0;
+    let finalTime  = 0;
+
+    const player = {
+      w: 42, h: 42,
+      x: canvas.width / 2 - 21,
+      y: canvas.height - 70,
+      speed: 290,
+      dx: 0
+    };
+
+    const obstacles = [];
+    const input = { left: false, right: false };
+
+    // ── Leaderboard render ───────────────────────────────────────────────────
+
+    function renderLeaderboard(entries) {
+      const list = document.getElementById('lbList');
+      if (!entries || entries.length === 0) {
+        list.innerHTML = '<div class="lb-empty">No records yet — survive 10s to qualify!</div>';
+        return;
+      }
+      const medals = ['🥇','🥈','🥉'];
+      const rankClasses = ['gold','silver','bronze'];
+      list.innerHTML = entries.map((e, i) => `
+        <div class="lb-row">
+          <span class="lb-rank ${rankClasses[i] || ''}">${medals[i] || i + 1}</span>
+          <span class="lb-name">${escapeHtml(e.name)}</span>
+          <span class="lb-time">${Number(e.time).toFixed(2)}s</span>
+        </div>`).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── Modals ───────────────────────────────────────────────────────────────
+
+    // --- Leaderboard modal ---
+    function showLbModal(time) {
+      lbModalDesc.textContent = `You survived ${time.toFixed(2)}s and cracked the Top 20!`;
+      nameInput.value = '';
+      lbModal.classList.add('show');
+      nameInput.focus();
+    }
+
+    submitLb.addEventListener('click', async () => {
+      const name = nameInput.value.trim() || 'Anonymous';
+      lbModal.classList.remove('show');
+      if (typeof window.saveToLeaderboard === 'function') {
+        await window.saveToLeaderboard(name, finalTime);
+      }
+    });
+
+    skipLb.addEventListener('click', () => lbModal.classList.remove('show'));
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') submitLb.click(); });
+
+    // --- Story modal ---
+    function countWords(str) {
+      return str.trim() === '' ? 0 : str.trim().split(/\s+/).length;
+    }
+
+    storyInput.addEventListener('input', () => {
+      const words = countWords(storyInput.value);
+      wordCountEl.textContent = `${words} / 150 words`;
+      wordCountEl.classList.toggle('over', words > 150);
+      submitStory.disabled = words > 150;
+    });
+
+    function showStoryModal() {
+      storyInput.value = '';
+      wordCountEl.textContent = '0 / 150 words';
+      wordCountEl.classList.remove('over');
+      submitStory.disabled = false;
+      storyModal.classList.add('show');
+      storyInput.focus();
+    }
+
+    submitStory.addEventListener('click', async () => {
+      const text = storyInput.value.trim();
+      storyModal.classList.remove('show');
+      if (!text) return;
+      if (typeof window.saveStory !== 'function') {
+        alert('Could not connect to database. Please try again.');
+        return;
+      }
+      try {
+        const key = await window.saveStory(text);
+        const random = await window.getRandomStory(key);
+        if (random) {
+          storyMetaEl.textContent = random.date
+            ? `Shared on ${new Date(random.date).toLocaleDateString()}`
+            : 'From another survivor';
+          storyBodyEl.textContent = random.story;
+        } else {
+          storyMetaEl.textContent = '';
+          storyBodyEl.textContent = "You're the first to share a story! Come back after others have played.";
+        }
+        storyReveal.classList.add('show');
+      } catch (err) {
+        console.error('Story save failed:', err);
+        alert('Failed to save your story. Check that Firebase rules allow writing to the stories node.');
+      }
+    });
+
+    skipStory.addEventListener('click', () => storyModal.classList.remove('show'));
+    closeStory.addEventListener('click', () => storyReveal.classList.remove('show'));
+
+    // ── Game logic ───────────────────────────────────────────────────────────
+
+    function resetGame() {
+      cancelAnimationFrame(animationId);
+      running = false;
+      gameOver = false;
+      startTime = 0;
+      lastTime  = 0;
+      spawnTimer = 0;
+      finalTime  = 0;
+      obstacles.length = 0;
+      player.x  = canvas.width / 2 - player.w / 2;
+      player.dx = 0;
+      timeEl.textContent   = '0.00';
+      statusEl.textContent = 'Not Started';
+      draw();
+    }
+
+    function startGame() {
+      resetGame();
+      running = true;
+      statusEl.textContent = 'In Progress';
+      startTime = performance.now();
+      lastTime  = startTime;
+      loop(startTime);
+    }
+
+    function spawnObstacle(elapsed) {
+      const difficultyBoost = Math.min(elapsed / 5, 1.3);
+      const speedMult = elapsed >= 4 ? 1 + (elapsed - 4) * 0.08 : 1;
+      const width  = 26 + Math.random() * 38;
+      const height = 18 + Math.random() * 24;
+      const speed  = (180 + Math.random() * 170 + difficultyBoost * 70) * speedMult;
+      obstacles.push({
+        x: Math.random() * (canvas.width - width),
+        y: -height, w: width, h: height, speed
+      });
+    }
+
+    function update(dt, now) {
+      const elapsed = (now - startTime) / 1000;
+      timeEl.textContent = elapsed.toFixed(2);
+
+      if (input.left && !input.right) player.dx = -player.speed;
+      else if (input.right && !input.left) player.dx = player.speed;
+      else player.dx = 0;
+
+      player.x += player.dx * dt;
+      player.x = Math.max(0, Math.min(canvas.width - player.w, player.x));
+
+      const spawnMult = elapsed >= 4 ? 1 + (elapsed - 4) * 0.08 : 1;
+      const spawnGap  = Math.max(0.1, (0.58 - elapsed * 0.05) / spawnMult);
+      spawnTimer += dt;
+      while (spawnTimer >= spawnGap) {
+        spawnTimer -= spawnGap;
+        spawnObstacle(elapsed);
+      }
+
+      for (let i = obstacles.length - 1; i >= 0; i--) {
+        const o = obstacles[i];
+        o.y += o.speed * dt;
+        if (isColliding(player, o)) { endGame(elapsed); return; }
+        if (o.y > canvas.height + 30) obstacles.splice(i, 1);
+      }
+    }
+
+    function isColliding(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x &&
+             a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function qualifiesForLeaderboard(elapsed) {
+      if (elapsed < QUALIFY_TIME) return false;
+      const board = window.currentLeaderboard || [];
+      if (board.length < 20) return true;
+      return elapsed > board[board.length - 1].time;
+    }
+
+    function endGame(elapsed) {
+      running  = false;
+      gameOver = true;
+      finalTime = elapsed;
+      statusEl.textContent = 'Game Over';
+      draw();
+      if (qualifiesForLeaderboard(elapsed)) {
+        setTimeout(() => showLbModal(elapsed), 400);
+      } else if (elapsed >= QUALIFY_TIME) {
+        setTimeout(() => showStoryModal(), 400);
+      } else {
+        setTimeout(() => { window.location.href = 'nlp-flyer.html'; }, 1500);
+      }
+    }
+
+    // ── Drawing ──────────────────────────────────────────────────────────────
+
+    function drawBackground() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      grad.addColorStop(0, '#111827');
+      grad.addColorStop(1, '#020617');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+      ctx.lineWidth = 1;
+      for (let y = 0; y < canvas.height; y += 40) {
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+      }
+    }
+
+    function drawPlayer() {
+      ctx.fillStyle = '#22c55e';
+      roundRect(ctx, player.x, player.y, player.w, player.h, 10, true);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      roundRect(ctx, player.x + 8, player.y + 8, player.w - 16, 10, 6, true);
+    }
+
+    function drawObstacles() {
+      obstacles.forEach(o => {
+        ctx.fillStyle = '#ef4444';
+        roundRect(ctx, o.x, o.y, o.w, o.h, 8, true);
+      });
+    }
+
+    function drawOverlay() {
+      if (!gameOver && !running) {
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 28px Arial';
+        ctx.fillText('Click to Start', canvas.width / 2, canvas.height / 2 - 10);
+        ctx.font = '16px Arial';
+        ctx.fillText('Survive as long as you can!', canvas.width / 2, canvas.height / 2 + 24);
+        return;
+      }
+      if (gameOver) {
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#fff';
+        ctx.textAlign = 'center';
+        ctx.font = 'bold 34px Arial';
+        ctx.fillText('Game Over!', canvas.width / 2, canvas.height / 2 - 20);
+        ctx.font = '18px Arial';
+        let msg;
+        if (qualifiesForLeaderboard(finalTime))  msg = 'You made the Top 20!';
+        else if (finalTime >= QUALIFY_TIME)       msg = 'You survived 10s — share your story!';
+        else                                      msg = 'You lasted ' + finalTime.toFixed(2) + 's — try again!';
+        ctx.fillText(msg, canvas.width / 2, canvas.height / 2 + 18);
+      }
+    }
+
+    function draw() {
+      drawBackground(); drawObstacles(); drawPlayer(); drawOverlay();
+    }
+
+    function loop(now) {
+      const dt = Math.min((now - lastTime) / 1000, 0.02);
+      lastTime = now;
+      if (running) update(dt, now);
+      draw();
+      if (running) animationId = requestAnimationFrame(loop);
+    }
+
+    function roundRect(ctx, x, y, w, h, r, fill) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.lineTo(x + w - r, y);
+      ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+      ctx.lineTo(x + w, y + h - r);
+      ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+      ctx.lineTo(x + r, y + h);
+      ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+      ctx.lineTo(x, y + r);
+      ctx.quadraticCurveTo(x, y, x + r, y);
+      ctx.closePath();
+      if (fill) ctx.fill();
+    }
+
+    // ── Input ────────────────────────────────────────────────────────────────
+
+    window.addEventListener('keydown', e => {
+      if (e.key === 'ArrowLeft'  || e.key.toLowerCase() === 'a') input.left  = true;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') input.right = true;
+    });
+    window.addEventListener('keyup', e => {
+      if (e.key === 'ArrowLeft'  || e.key.toLowerCase() === 'a') input.left  = false;
+      if (e.key === 'ArrowRight' || e.key.toLowerCase() === 'd') input.right = false;
+    });
+
+    canvas.addEventListener('touchstart', e => {
+      const x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+      input.left = x < canvas.getBoundingClientRect().width / 2;
+      input.right = !input.left;
+    }, { passive: true });
+    canvas.addEventListener('touchmove', e => {
+      const x = e.touches[0].clientX - canvas.getBoundingClientRect().left;
+      input.left = x < canvas.getBoundingClientRect().width / 2;
+      input.right = !input.left;
+    }, { passive: true });
+    canvas.addEventListener('touchend', () => { input.left = false; input.right = false; });
+
+    startBtn.addEventListener('click', startGame);
+
+    const lbBtn   = document.getElementById('lbBtn');
+    const lbPanel = document.getElementById('leaderboardPanel');
+    lbBtn.addEventListener('click', () => {
+      const open = lbPanel.classList.toggle('open');
+      lbBtn.textContent = open ? 'Hide Leaderboard' : 'Leaderboard';
+    });
+
+    resetGame();
+  </script>
+</body>
+</html>

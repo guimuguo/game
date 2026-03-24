@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NLP – Beyond the Prompt</title>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(160deg, #06061a 0%, #0d0d2b 50%, #12103a 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 40px 20px;
+    }
+
+    /* ── Outer card ── */
+    .flyer {
+      width: 100%;
+      max-width: 640px;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 24px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(91,91,214,0.25);
+    }
+
+    /* ── Hero banner ── */
+    .hero {
+      background:
+        radial-gradient(circle at 15% 20%, rgba(130,130,255,0.28) 0%, transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(212,160,23,0.16) 0%, transparent 30%),
+        linear-gradient(135deg, #07071d 0%, #171058 55%, #0b0b28 100%);
+      padding: 38px 36px 32px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 60% 50% at 20% 50%, rgba(91,91,214,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 80% 50%, rgba(212,160,23,0.12) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(130,130,255,0.12) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(130,130,255,0.12) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: radial-gradient(circle at 50% 45%, black 35%, transparent 90%);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .title {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(2.4rem, 8vw, 3.6rem);
+      font-weight: 700;
+      line-height: 1.1;
+      background: linear-gradient(135deg, #ffffff 30%, #a5a5ff 70%, #d4a017 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.25em;
+      position: relative;
+      z-index: 2;
+    }
+
+    .subtitle {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1.2rem, 4vw, 1.6rem);
+      font-weight: 600;
+      color: #d4a017;
+      margin-bottom: 1em;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      position: relative;
+      z-index: 2;
+    }
+
+    .tagline {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1.05rem, 3vw, 1.3rem);
+      font-weight: 600;
+      line-height: 1.5;
+      max-width: 500px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, #a0a0ff 0%, #d4a017 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+      z-index: 2;
+    }
+
+    .logo-wall {
+      position: absolute;
+      left: 50%;
+      top: 57%;
+      transform: translate(-50%, -50%);
+      width: min(92%, 560px);
+      display: grid;
+      grid-template-columns: repeat(6, minmax(54px, 1fr));
+      gap: 8px;
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.24;
+    }
+
+    .logo-badge {
+      height: 46px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.22);
+      background: rgba(255,255,255,0.04);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+    }
+
+    .logo-badge img {
+      width: 24px;
+      height: 24px;
+      object-fit: contain;
+      filter: brightness(0) invert(1);
+      opacity: 0.95;
+    }
+
+    @media (max-width: 560px) {
+      .logo-wall { grid-template-columns: repeat(4, minmax(54px, 1fr)); }
+    }
+
+    /* ── Content area ── */
+    .content {
+      background: #ffffff;
+      padding: 30px 32px 28px;
+    }
+
+    /* ── Divider ── */
+    hr.divider {
+      border: none;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #c0c0f0, transparent);
+      margin: 1.5em 0;
+    }
+
+    /* ── Section headers ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5em;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #0d0d2b;
+      margin-bottom: 0.8em;
+      padding-left: 0.6em;
+      border-left: 3px solid #5b5bd6;
+    }
+
+    .section-header .icon { font-size: 1.3rem; }
+
+    /* ── Two-column layout ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1em 1.5em;
+      text-align: left;
+    }
+
+    .two-col > div {
+      background: #f5f5ff;
+      border-radius: 10px;
+      padding: 1em 1.1em;
+    }
+
+    @media (max-width: 500px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    /* ── Bullet lists ── */
+    .bullet-list {
+      list-style: none;
+    }
+
+    .bullet-list li {
+      position: relative;
+      padding-left: 1.3em;
+      font-size: 0.93rem;
+      color: #333;
+      margin-bottom: 0.4em;
+      line-height: 1.5;
+    }
+
+    .bullet-list li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: #5b5bd6;
+      font-size: 0.9em;
+    }
+
+    .features-list li {
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .features-list li.highlight {
+      font-weight: 700;
+      color: #3a3ab8;
+      background: linear-gradient(90deg, rgba(91,91,214,0.10) 0%, transparent 100%);
+      border-left: 2px solid #5b5bd6;
+      padding-left: 0.8em;
+      border-radius: 0 4px 4px 0;
+      margin-left: -0.15em;
+    }
+
+    .features-list li.highlight::before {
+      color: #d4a017;
+      content: "▸";
+    }
+
+    /* ── Careers box ── */
+    .careers-box {
+      background: linear-gradient(135deg, #f0f0ff 0%, #fffaf0 100%);
+      border: 2px solid #5b5bd6;
+      border-radius: 12px;
+      padding: 1.1em 1.4em;
+      text-align: left;
+      margin: 0.4em 0;
+    }
+
+    .careers-box .section-header { margin-bottom: 0.6em; border-left-color: #d4a017; }
+
+    .check-list { list-style: none; display: flex; flex-wrap: wrap; gap: 0.4em 1.5em; }
+
+    .check-list li {
+      position: relative;
+      padding-left: 1.5em;
+      font-size: 0.95rem;
+      color: #222;
+      line-height: 1.5;
+    }
+
+    .check-list li::before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #5b5bd6;
+      font-weight: 700;
+    }
+
+    .check-list li.highlight {
+      font-weight: 700;
+      color: #3a3ab8;
+      background: linear-gradient(90deg, rgba(91,91,214,0.10) 0%, transparent 100%);
+      border-left: 2px solid #5b5bd6;
+      padding-left: 1.7em;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .check-list li.highlight::before {
+      color: #d4a017;
+      content: "✓";
+    }
+
+    /* ── When & Where ── */
+    .when-where {
+      text-align: center;
+    }
+
+    .when-where .section-header {
+      justify-content: center;
+      border-left: none;
+      border-bottom: 3px solid #5b5bd6;
+      padding-left: 0;
+      padding-bottom: 0.3em;
+      display: inline-flex;
+      margin-bottom: 0.9em;
+    }
+
+    .time-block {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #0d0d2b;
+      margin-bottom: 0.55em;
+      letter-spacing: 0.02em;
+    }
+
+    .register-info {
+      font-size: 0.93rem;
+      color: #444;
+      line-height: 1.9;
+    }
+
+    .crn {
+      font-weight: 700;
+      color: #c0392b;
+      background: #fff0ee;
+      padding: 0.05em 0.35em;
+      border-radius: 4px;
+    }
+
+    /* ── CTA Banner ── */
+    .cta-banner {
+      margin-top: 1.6em;
+      background: linear-gradient(135deg, #3a3ab8 0%, #0d0d2b 60%, #1a0a00 100%);
+      color: #fff;
+      border-radius: 12px;
+      padding: 1em 1.4em;
+      font-size: 1rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6em;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 16px rgba(91,91,214,0.35);
+    }
+
+    .cta-banner .bolt { font-size: 1.3rem; }
+
+    /* ── Print / A4 ── */
+    @page {
+      size: A4;
+      margin: 10mm 12mm;
+    }
+
+    /* ── Ad countdown bar ── */
+    .ad-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      background: #0d0d2b;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      z-index: 999;
+      gap: 12px;
+    }
+    .ad-bar span { opacity: 0.85; }
+    .ad-bar .skip-btn {
+      background: #5b5bd6;
+      color: #fff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 22px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .progress-wrap {
+      flex: 1;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 100%;
+      background: #5b5bd6;
+      border-radius: 2px;
+      transition: width linear;
+    }
+    body { padding-top: 48px; }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      body {
+        padding: 0;
+        background: linear-gradient(160deg, #06061a 0%, #0d0d2b 50%, #12103a 100%) !important;
+        min-height: unset;
+        align-items: stretch;
+      }
+      .flyer {
+        max-width: 100%;
+        border-radius: 16px;
+        margin: 8mm auto;
+        box-shadow: none;
+      }
+      .hero         { padding: 28px 30px 22px; }
+      .content      { padding: 20px 26px 20px; }
+      hr.divider    { margin: 1em 0; }
+      .section-header { margin-bottom: 0.55em; }
+      .cta-banner   { margin-top: 1em; }
+      .time-block   { margin-bottom: 0.35em; }
+      .careers-box  { padding: 0.8em 1.1em; }
+      .tagline {
+        -webkit-text-fill-color: #a0a0ff !important;
+        background: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ad-bar" id="adBar">
+    <span id="adLabel">Returning to game in <strong id="adCount">15</strong>s…</span>
+    <div class="progress-wrap"><div class="progress-fill" id="adProgress"></div></div>
+    <button class="skip-btn" id="skipAd">Back to Game</button>
+  </div>
+
+  <div class="flyer">
+
+    <!-- Hero -->
+    <div class="hero">
+      <div class="logo-wall" aria-hidden="true">
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/openai/FFFFFF" alt="OpenAI"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/google/FFFFFF" alt="Google"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/microsoft/FFFFFF" alt="Microsoft"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/meta/FFFFFF" alt="Meta"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/nvidia/FFFFFF" alt="NVIDIA"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/amazon/FFFFFF" alt="Amazon"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/apple/FFFFFF" alt="Apple"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/huggingface/FFFFFF" alt="Hugging Face"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/ibm/FFFFFF" alt="IBM"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/intel/FFFFFF" alt="Intel"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/salesforce/FFFFFF" alt="Salesforce"/></div>
+        <div class="logo-badge"><img src="https://cdn.simpleicons.org/oracle/FFFFFF" alt="Oracle"/></div>
+      </div>
+      <p style="font-family:'Rajdhani',sans-serif;font-size:1.6rem;font-weight:700;color:#d4a017;letter-spacing:0.12em;text-transform:uppercase;margin-bottom:0.5em;position:relative;z-index:2;">Rowan CS New AI Course (2026 Fall)</p>
+      <h1 class="title">Natural Language<br>Processing (NLP)</h1>
+      <p class="subtitle">Beyond the Prompt</p>
+      <p class="tagline">Build ChatGPT-style systems. Learn how modern AI understands and generates language.</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+      <div class="two-col">
+        <!-- What You Will Learn -->
+        <div>
+          <div class="section-header">
+            <span class="icon">🚀</span> What You Will Learn
+          </div>
+          <ul class="bullet-list">
+            <li>Transformers, BERT, GPT</li>
+            <li>Large Language Models</li>
+            <li>Text classification &amp; generation</li>
+            <li>Real-world NLP systems</li>
+          </ul>
+        </div>
+
+        <!-- Course Features -->
+        <div>
+          <div class="section-header">
+            <span class="icon">💻</span> Course Features
+          </div>
+          <ul class="bullet-list features-list">
+            <li class="highlight">Project-oriented, hands-on learning</li>
+            <li class="highlight">Zero to Hero: Build your own mini-GPT</li>
+            <li>Technologies powering modern AI</li>
+            <li>Skills aligned with AI industry needs</li>
+          </ul>
+        </div>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- Careers -->
+      <div class="careers-box">
+        <div class="section-header">
+          <span class="icon">🎯</span> Careers in AI/ML
+        </div>
+        <ul class="check-list">
+          <li>Become a high-demand AI specialist</li>
+          <li>Learn industry-relevant NLP &amp; LLM skills</li>
+          <li class="highlight">Build portfolio-ready projects</li>
+        </ul>
+      </div>
+
+      <hr class="divider"/>
+
+      <!-- When & Where -->
+      <div class="when-where">
+        <div class="section-header">
+          <span class="icon">🕐</span> When &amp; Where
+        </div>
+        <p class="time-block">Tuesday 2:00 PM — 4:45 PM</p>
+        <p class="register-info">
+          🎓 Register via Self-Service Banner<br/>
+          Undergrad (CS 07655): <span class="crn">CRN 46264</span><br/>
+          Graduate (CS 01395): <span class="crn">CRN 46228</span>
+        </p>
+      </div>
+
+      <!-- CTA -->
+      <div class="cta-banner">
+        <span class="bolt">⚡</span>
+        Seats fill up fast — Secure your spot in Banner today!
+      </div>
+
+    </div>
+  </div>
+  <script>
+    const GAME_URL = 'survive_five_seconds_game.html';
+    const WAIT = 15;
+    const countEl    = document.getElementById('adCount');
+    const progressEl = document.getElementById('adProgress');
+    const skipBtn    = document.getElementById('skipAd');
+
+    function goBack() { window.location.href = GAME_URL; }
+    skipBtn.addEventListener('click', goBack);
+
+    // Only show bar if coming from the game (not direct visit)
+    const fromGame = document.referrer.includes('survive_five_seconds_game') ||
+                     document.referrer === '';
+
+    if (!fromGame) {
+      document.getElementById('adBar').style.display = 'none';
+      document.body.style.paddingTop = '0';
+    } else {
+      let remaining = WAIT;
+      progressEl.style.width = '100%';
+      setTimeout(() => {
+        progressEl.style.transition = `width ${WAIT}s linear`;
+        progressEl.style.width = '0%';
+      }, 50);
+
+      const timer = setInterval(() => {
+        remaining--;
+        countEl.textContent = remaining;
+        if (remaining <= 0) { clearInterval(timer); goBack(); }
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
