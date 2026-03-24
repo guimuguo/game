@@ -513,7 +513,7 @@
     </div>
   </div>
   <script>
-    const GAME_URL = 'survive_five_seconds_game.html';
+    const GAME_URL = 'index.html';
     const WAIT = 15;
     const countEl    = document.getElementById('adCount');
     const progressEl = document.getElementById('adProgress');
@@ -523,7 +523,7 @@
     skipBtn.addEventListener('click', goBack);
 
     // Only show bar if coming from the game (not direct visit)
-    const fromGame = document.referrer.includes('survive_five_seconds_game') ||
+    const fromGame = document.referrer.includes('index') ||
                      document.referrer === '';
 
     if (!fromGame) {
